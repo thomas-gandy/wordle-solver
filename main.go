@@ -172,16 +172,21 @@ func main() {
 
 	for !session.completed {
 		fmt.Printf("enter '%s'\n", suggestedWord)
-		colors := getLineFromUser("color of each letter (G)reen, (Y)ellow, (B)lack", inputScanner)
+		colors := getLineFromUser("color of each letter (g)reen, (y)ellow, (b)lack", inputScanner)
 
 		updateSession(&session, suggestedWord, colors)
+		if session.completed {
+			break
+		}
+
 		printConstraints(session.constraints)
 		suggestedWords := getNextWords(wordTree, session.constraints, wordFrequencies)
-
 		numToShow := min(5, len(suggestedWords))
+
 		for i, possibleWord := range suggestedWords[:numToShow] {
 			fmt.Printf("(%d) %s\n", i+1, possibleWord)
 		}
+
 		indexChosen := getNumberFromUser("index of word chosen", inputScanner)
 		suggestedWord = []byte(suggestedWords[indexChosen-1])
 	}
