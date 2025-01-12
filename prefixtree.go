@@ -42,10 +42,7 @@ func add(n *node, word string, length, i int) {
 }
 
 func (tree *prefixTree) findPossibleWords(constraints []constraint) []string {
-	result := make([]string, 0, 512)
-	currentWord := make([]byte, tree.longestWordLength)
 	stateConstraints := make([]stateConstraint, 0, len(constraints))
-
 	for _, c := range constraints {
 		value, isStateConstraint := c.(stateConstraint)
 		if isStateConstraint {
@@ -53,33 +50,30 @@ func (tree *prefixTree) findPossibleWords(constraints []constraint) []string {
 		}
 	}
 
-	for _, child := range tree.root.children {
-		for _, constraintWithState := range stateConstraints {
-			constraintWithState.saveState()
-		}
-		result = append(result, findPossibleWords(child, 0, constraints, stateConstraints, currentWord)...)
-		for _, constraintWithState := range stateConstraints {
-			constraintWithState.restoreState()
-		}
-	}
+	currentWord := make([]byte, tree.longestWordLength)
+	result := findPossibleWords(tree.root, -1, constraints, stateConstraints, currentWord)
 
 	return result
 }
 
 func findPossibleWords(n *node, i int, allConstraints []constraint, states []stateConstraint, word []byte) []string {
-	word[i] = n.value
-	constraintCompletesWord := false
-	for _, currentConstraint := range allConstraints {
-		if !currentConstraint.couldPass(word, i) {
-			if currentConstraint.signalsWordEnd() && n.isWordTerminator {
-				constraintCompletesWord = true
-			} else {
-				return []string{}
+	if i >= 0 {
+		word[i] = n.value
+		constraintCompletesWord := false
+
+		for _, currentConstraint := range allConstraints {
+			if !currentConstraint.couldPass(word, i) {
+				if currentConstraint.signalsWordEnd() && n.isWordTerminator {
+					constraintCompletesWord = true
+				} else {
+					return []string{}
+				}
 			}
 		}
-	}
-	if constraintCompletesWord {
-		return []string{string(word[:i+1])}
+
+		if constraintCompletesWord {
+			return []string{string(word[:i+1])}
+		}
 	}
 
 	results := make([]string, 0, 512)
